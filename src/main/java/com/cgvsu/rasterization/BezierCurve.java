@@ -5,10 +5,11 @@ import javafx.scene.paint.Color;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class BezierCurve {
-    private List<Point> pixels;
+    private List<Point> segmentPoints;
     private List<Point> points;
     private int segments;
     private GraphicsContext gr;
@@ -25,15 +26,15 @@ public class BezierCurve {
         this.segments = segments;
         this.width = width;
         this.color = color;
-        pixels = generateBezierCurveOptimized(points, segments);
+        segmentPoints = generateBezierCurveOptimized(points, segments);
     }
 
     public void draw() {
-        DrawUtil.drawCurve(gr, pixels, width, color);
+        DrawUtil.drawCurve(gr, segmentPoints, width, color);
     }
 
     public void setColor(Color color) {
-        DrawUtil.drawCurve(gr, pixels, width, color);
+        DrawUtil.drawCurve(gr, segmentPoints, width, color);
         System.out.println("ggg");
     }
 
@@ -87,7 +88,15 @@ public class BezierCurve {
     }
 
 
-    public List<Point> getPixels() {
-        return pixels;
+    public List<Point> getSegmentPoints() {
+        return segmentPoints;
+    }
+
+    public HashMap<Point, BezierCurve> getCurrentCurveMap() {
+        HashMap<Point, BezierCurve> res = new HashMap<>();
+        for (Point p : segmentPoints) {
+            res.put(p, this);
+        }
+        return res;
     }
 }

@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashSet;
 import java.util.List;
 
 public class RasterizationController {
@@ -21,6 +22,7 @@ public class RasterizationController {
     private Canvas canvas;
 
     private GraphicsContext gc;
+    private CurveManager cv;
 
     @FXML
     private void initialize() {
@@ -28,6 +30,7 @@ public class RasterizationController {
         anchorPane.prefHeightProperty().addListener((ov, oldValue, newValue) -> canvas.setHeight(newValue.doubleValue()));
         GraphicsContext gr = canvas.getGraphicsContext2D();
         gc = gr;
+        cv = new CurveManager();
         //DrawUtil.drawGrid(gr, 10);
         setupEventHandlers();
         drawContent();
@@ -46,9 +49,10 @@ public class RasterizationController {
 
     private void drawContent() {
         List<Point> contP = List.of(new Point(10, 10), new Point(300, 800), new Point(500, 200), new Point(800, 800));
-        BezierCurve bzc = new BezierCurve(gc, contP, 100, 2, Color.rgb(255,255,255));
+        BezierCurve bzc = new BezierCurve(gc, contP, 100, 2, Color.rgb(0,0,0));
+        cv.addCurve(bzc);
         bzc.draw();
-        bzc.activeCurve();
+        //bzc.activeCurve();
     }
 
     private void setupEventHandlers() {
@@ -65,9 +69,8 @@ public class RasterizationController {
         });
 
         canvas.setOnMouseMoved(event -> {
-            double mouseX = event.getX();
-            double mouseY = event.getY();
-            if (mouseX < 400) {
+            boolean close = distanceToCurve(event);
+            if (close) {
                 canvas.setCursor(Cursor.HAND);
             }
             else {
@@ -76,11 +79,12 @@ public class RasterizationController {
         });
     }
 
-    private void distanceToCurve(MouseEvent event) {
+    private boolean distanceToCurve(MouseEvent event) {
         int mouseX = (int) event.getX();
         int mouseY = (int) event.getY();
         List<Point> circle = DrawUtil.getFilledCircleOptimized(mouseX, mouseY, 10);
-
+        HashSet<Point> circleCursor = new HashSet<>(circle);
+        return cv.isCurveClose(circleCursor);
     }
 
 }
