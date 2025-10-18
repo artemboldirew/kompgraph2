@@ -15,6 +15,7 @@ public class BezierCurve {
     private GraphicsContext gr;
     int width = 5;
     private Color color;
+    private boolean isActive = false;
 
     public BezierCurve(Point p1, Point p2) {
 
@@ -31,17 +32,14 @@ public class BezierCurve {
 
     public void draw() {
         DrawUtil.drawCurve(gr, segmentPoints, width, color);
+        if (isActive) {
+            drawMainPoints();
+            DrawUtil.drawCurve(gr, points, 1, Color.BLUE);
+        }
     }
 
     public void setColor(Color color) {
-        DrawUtil.drawCurve(gr, segmentPoints, width, color);
-        System.out.println("ggg");
-    }
-
-    public void activeCurve() {
-        setColor(Color.YELLOW);
-        drawMainPoints();
-        DrawUtil.drawCurve(gr, points, 1, Color.BLUE);
+        this.color = color;
     }
 
     public static List<Point> generateBezierCurveOptimized(List<Point> controlPoints, int segments) {
@@ -98,5 +96,9 @@ public class BezierCurve {
             res.put(p, this);
         }
         return res;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

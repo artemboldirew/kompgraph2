@@ -1,6 +1,7 @@
 package com.cgvsu.rasterizationfxapp;
 
 import com.cgvsu.rasterization.*;
+import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
@@ -31,12 +32,29 @@ public class RasterizationController {
         GraphicsContext gr = canvas.getGraphicsContext2D();
         gc = gr;
         cv = new CurveManager();
-        //DrawUtil.drawGrid(gr, 10);
+        DrawUtil.drawGrid(gr, 10);
+
         setupEventHandlers();
-        drawContent();
-        Timer timer = new Timer(100, e -> {
-            repaint();
-        });
+        firstDraw();
+        AnimationTimer timer = new AnimationTimer() {
+            private long lastUpdate = 0;
+
+            @Override
+            public void handle(long now) {
+                if (now - lastUpdate >= 10_000_000) { // 10ms в наносекундах
+                    repaint(); // Ваш метод отрисовки
+                    lastUpdate = now;
+                }
+            }
+        };
+        timer.start();
+        timer.start();
+    }
+
+    private void firstDraw() {
+        List<Point> contP = List.of(new Point(10, 10), new Point(300, 800), new Point(500, 200), new Point(800, 800));
+        BezierCurve bzc = new BezierCurve(gc, contP, 100, 2, Color.rgb(0,0,0));
+        cv.addCurve(bzc);
     }
 
     public void repaint() {
@@ -48,14 +66,27 @@ public class RasterizationController {
     }
 
     private void drawContent() {
-        List<Point> contP = List.of(new Point(10, 10), new Point(300, 800), new Point(500, 200), new Point(800, 800));
-        BezierCurve bzc = new BezierCurve(gc, contP, 100, 2, Color.rgb(0,0,0));
-        cv.addCurve(bzc);
-        bzc.draw();
-        //bzc.activeCurve();
+        DrawUtil.drawGrid(gc, 10);
+        cv.draw();
     }
 
     private void setupEventHandlers() {
+        canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            int mouseX = (int) event.getX();
+            int mouseY = (int) event.getY();
+            boolean close = cv.isCurveCloseToPoint(mouseX, mouseY);
+            if (close) {
+                BezierCurve bz = cv.getClosestCurveToPoint(mouseX, mouseY);
+                //bz.activeCurve();
+                cv.setActiveCurve(bz);
+                System.out.println("Близко");
+            } else {
+                if (cv.getActiveCurve() != null) {
+                    cv.setActiveCurve(null);
+                }
+            }
+        });
+
         canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
 
         });
@@ -69,7 +100,9 @@ public class RasterizationController {
         });
 
         canvas.setOnMouseMoved(event -> {
-            boolean close = distanceToCurve(event);
+            int mouseX = (int) event.getX();
+            int mouseY = (int) event.getY();
+            boolean close = cv.isCurveCloseToPoint(mouseX, mouseY);
             if (close) {
                 canvas.setCursor(Cursor.HAND);
             }
@@ -79,12 +112,5 @@ public class RasterizationController {
         });
     }
 
-    private boolean distanceToCurve(MouseEvent event) {
-        int mouseX = (int) event.getX();
-        int mouseY = (int) event.getY();
-        List<Point> circle = DrawUtil.getFilledCircleOptimized(mouseX, mouseY, 10);
-        HashSet<Point> circleCursor = new HashSet<>(circle);
-        return cv.isCurveClose(circleCursor);
-    }
 
 }

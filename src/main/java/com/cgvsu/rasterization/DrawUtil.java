@@ -16,7 +16,7 @@ public class DrawUtil {
         int horizontal = 0;
         while (vertical < Config.SCREEN_HEIGHT) {
             while (horizontal < Config.SCREEN_WIDTH) {
-                pixelWriter.setColor(horizontal, vertical, Color.BLACK);
+                pixelWriter.setColor(horizontal, vertical, Color.rgb(177, 177, 177));
                 horizontal++;
             }
             vertical += width;
@@ -27,7 +27,7 @@ public class DrawUtil {
         horizontal = width;
         while (horizontal < Config.SCREEN_WIDTH) {
             while (vertical < Config.SCREEN_HEIGHT) {
-                pixelWriter.setColor(horizontal, vertical, Color.BLACK);
+                pixelWriter.setColor(horizontal, vertical, Color.rgb(177, 177, 177));
                 vertical++;
             }
             horizontal += width;

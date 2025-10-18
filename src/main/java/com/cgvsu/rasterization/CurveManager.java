@@ -1,5 +1,7 @@
 package com.cgvsu.rasterization;
 
+import javafx.scene.input.MouseEvent;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +12,15 @@ public class CurveManager {
     List<BezierCurve> curves = new ArrayList<>();
     HashMap<Point, BezierCurve> mapOfPointsAndCurves = new HashMap<>();
     HashSet<Point> allPoints = new HashSet<>();
+    BezierCurve activeCurve = null;
 
+
+
+    public void draw() {
+        for (BezierCurve curve : curves) {
+            curve.draw();
+        }
+    }
 
 
     public void addCurve(BezierCurve bzc) {
@@ -30,10 +40,41 @@ public class CurveManager {
 //
 //    }
 
-    public boolean isCurveClose(HashSet<Point> points) {
-        //HashSet<Point> inter = points.retainAll(allPoints);
+    public boolean isCurveInPoints(HashSet<Point> points) {
         HashSet<Point> intersection = new HashSet<>(points);
         intersection.retainAll(allPoints);
         return !intersection.isEmpty();
     }
+
+    public boolean isCurveCloseToPoint(int mouseX, int mouseY) {
+        List<Point> circle = DrawUtil.getFilledCircleOptimized(mouseX, mouseY, 10);
+        HashSet<Point> circleCursor = new HashSet<>(circle);
+        return isCurveInPoints(circleCursor);
+    }
+
+
+    public BezierCurve getClosestCurveToPoint(int mouseX, int mouseY) {
+        List<Point> circle = DrawUtil.getFilledCircleOptimized(mouseX, mouseY, 10);
+        HashSet<Point> circleCursor = new HashSet<>(circle);
+        circleCursor.retainAll(allPoints);
+        Point closestP = CoordinateUtil.closestPoint(circleCursor, new Point(mouseX, mouseY));
+        return getCurveByPoint(closestP);
+    }
+
+    public void setActiveCurve(BezierCurve active) {
+        if (this.activeCurve != null) {
+            this.activeCurve.setActive(false);
+        }
+        this.activeCurve = active;
+        if (this.activeCurve != null) {
+            active.setActive(true);
+        }
+
+    }
+
+    public BezierCurve getActiveCurve() {
+        return this.activeCurve;
+    }
+
+
 }
