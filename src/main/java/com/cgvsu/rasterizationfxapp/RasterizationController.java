@@ -1,5 +1,6 @@
 package com.cgvsu.rasterizationfxapp;
 
+import com.cgvsu.interfaces.CanvasElement;
 import com.cgvsu.rasterization.*;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
@@ -12,6 +13,7 @@ import javafx.scene.paint.Color;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -24,6 +26,8 @@ public class RasterizationController {
 
     private GraphicsContext gc;
     private CurveManager cv;
+    private HashSet<Point> allPoints;
+    private HashMap<Point, CanvasElement> canvasMap;
 
     @FXML
     private void initialize() {
@@ -47,7 +51,6 @@ public class RasterizationController {
                 }
             }
         };
-        timer.start();
         timer.start();
     }
 
@@ -79,7 +82,6 @@ public class RasterizationController {
                 BezierCurve bz = cv.getClosestCurveToPoint(mouseX, mouseY);
                 //bz.activeCurve();
                 cv.setActiveCurve(bz);
-                System.out.println("Близко");
             } else {
                 if (cv.getActiveCurve() != null) {
                     cv.setActiveCurve(null);
@@ -92,6 +94,16 @@ public class RasterizationController {
         });
 
         canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, event -> {
+            int mouseX = (int) event.getX();
+            int mouseY = (int) event.getY();
+            boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
+            if (IsMainPointsClose) {
+                System.out.println("hi");
+                Point p = CoordinateUtil.getClosestPointFromSet(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints()));
+                p.x = mouseX;
+                p.y = mouseY;
+                cv.getActiveCurve().regenerateCurve();
+            }
 
         });
 
@@ -103,13 +115,19 @@ public class RasterizationController {
             int mouseX = (int) event.getX();
             int mouseY = (int) event.getY();
             boolean close = cv.isCurveCloseToPoint(mouseX, mouseY);
-            if (close) {
+
+            boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
+            if (close || IsMainPointsClose) {
                 canvas.setCursor(Cursor.HAND);
             }
             else {
                 canvas.setCursor(Cursor.DEFAULT);
             }
         });
+    }
+
+    private void getCurrentElement(MouseEvent event) {
+
     }
 
 

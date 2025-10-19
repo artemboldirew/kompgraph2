@@ -101,4 +101,13 @@ public class BezierCurve {
     public void setActive(boolean active) {
         isActive = active;
     }
+
+
+    public List<Point> getPoints() {
+        return points;
+    }
+
+    public void regenerateCurve() {
+        segmentPoints = generateBezierCurveOptimized(points, segments);
+    }
 }
