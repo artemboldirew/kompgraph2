@@ -28,6 +28,7 @@ public class RasterizationController {
     private CurveManager cv;
     private HashSet<Point> allPoints;
     private HashMap<Point, CanvasElement> canvasMap;
+    private Point draggingPoint;
 
     @FXML
     private void initialize() {
@@ -90,25 +91,31 @@ public class RasterizationController {
         });
 
         canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
-
+            int mouseX = (int) event.getX();
+            int mouseY = (int) event.getY();
+            boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
+            if (cv.getActiveCurve() != null && IsMainPointsClose) {
+                draggingPoint = CoordinateUtil.getClosestPointFromSet(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints()));
+            }
         });
 
         canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, event -> {
             int mouseX = (int) event.getX();
             int mouseY = (int) event.getY();
-            boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
-            if (IsMainPointsClose) {
-                System.out.println("hi");
-                Point p = CoordinateUtil.getClosestPointFromSet(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints()));
+            if (draggingPoint != null) {
+                Point p = draggingPoint;
                 p.x = mouseX;
                 p.y = mouseY;
                 cv.getActiveCurve().regenerateCurve();
             }
 
+            //boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
+
+
         });
 
         canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, event -> {
-
+            draggingPoint = null;
         });
 
         canvas.setOnMouseMoved(event -> {
