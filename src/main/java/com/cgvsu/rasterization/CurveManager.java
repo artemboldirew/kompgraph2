@@ -18,6 +18,8 @@ public class CurveManager {
 
     public void draw() {
         for (BezierCurve curve : curves) {
+            allPoints.addAll(curve.getSegmentPoints());
+            mapOfPointsAndCurves.putAll(curve.getCurrentCurveMap());
             curve.draw();
         }
     }

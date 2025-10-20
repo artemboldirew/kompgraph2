@@ -108,11 +108,11 @@ public class BezierCurve {
     }
 
     public void regenerateCurve() {
-//        List<Point> changedPoints = generateBezierCurveOptimized(points, segments);
-//        for (int i = 0; i < segmentPoints.size(); i++) {
-//            segmentPoints.get(i).x = changedPoints.get(i).x;
-//            segmentPoints.get(i).y = changedPoints.get(i).y;
-//        }
-        segmentPoints = generateBezierCurveOptimized(points, segments);
+        List<Point> changedPoints = generateBezierCurveOptimized(points, segments);
+        for (int i = 0; i < segmentPoints.size(); i++) {
+            segmentPoints.get(i).x = changedPoints.get(i).x;
+            segmentPoints.get(i).y = changedPoints.get(i).y;
+        }
+        //segmentPoints = generateBezierCurveOptimized(points, segments);
     }
 }

@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
@@ -29,6 +30,7 @@ public class RasterizationController {
     private HashSet<Point> allPoints;
     private HashMap<Point, CanvasElement> canvasMap;
     private Point draggingPoint;
+    private boolean isAdown = false;
 
     @FXML
     private void initialize() {
@@ -81,10 +83,10 @@ public class RasterizationController {
             boolean close = cv.isCurveCloseToPoint(mouseX, mouseY);
             if (close) {
                 BezierCurve bz = cv.getClosestCurveToPoint(mouseX, mouseY);
-                //bz.activeCurve();
                 cv.setActiveCurve(bz);
             } else {
-                if (cv.getActiveCurve() != null) {
+                boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
+                if (cv.getActiveCurve() != null && !IsMainPointsClose) {
                     cv.setActiveCurve(null);
                 }
             }
@@ -129,6 +131,23 @@ public class RasterizationController {
             }
             else {
                 canvas.setCursor(Cursor.DEFAULT);
+            }
+
+
+
+        });
+
+        canvas.setOnKeyPressed(keyEvent -> {
+            KeyCode code = keyEvent.getCode();
+            if (code == KeyCode.A) {
+                isAdown = true;
+            }
+        });
+
+        canvas.setOnKeyReleased(keyEvent -> {
+            KeyCode code = keyEvent.getCode();
+            if (code == KeyCode.A) {
+                isAdown = false;
             }
         });
     }
