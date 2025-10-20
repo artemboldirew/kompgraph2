@@ -14,6 +14,7 @@ import javafx.scene.paint.Color;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,16 +31,23 @@ public class RasterizationController {
     private HashSet<Point> allPoints;
     private HashMap<Point, CanvasElement> canvasMap;
     private Point draggingPoint;
-    private boolean isAdown = false;
+    private boolean isCtrldown = false;
+    private HashMap<KeyCode, Boolean> keys = new HashMap<>();
 
     @FXML
     private void initialize() {
         anchorPane.prefWidthProperty().addListener((ov, oldValue, newValue) -> canvas.setWidth(newValue.doubleValue()));
         anchorPane.prefHeightProperty().addListener((ov, oldValue, newValue) -> canvas.setHeight(newValue.doubleValue()));
         GraphicsContext gr = canvas.getGraphicsContext2D();
+        canvas.setFocusTraversable(true);
+        canvas.requestFocus();
         gc = gr;
         cv = new CurveManager();
         DrawUtil.drawGrid(gr, 10);
+
+        for (KeyCode k : KeyCode.values()) {
+            keys.put(k, false);
+        }
 
         setupEventHandlers();
         firstDraw();
@@ -58,9 +66,7 @@ public class RasterizationController {
     }
 
     private void firstDraw() {
-        List<Point> contP = List.of(new Point(10, 10), new Point(300, 800), new Point(500, 200), new Point(800, 800));
-        BezierCurve bzc = new BezierCurve(gc, contP, 100, 2, Color.rgb(0,0,0));
-        cv.addCurve(bzc);
+//
     }
 
     public void repaint() {
@@ -89,6 +95,16 @@ public class RasterizationController {
                 if (cv.getActiveCurve() != null && !IsMainPointsClose) {
                     cv.setActiveCurve(null);
                 }
+            }
+            if (cv.getActiveCurve() == null && keys.get(KeyCode.CONTROL)) {
+
+                Point p1 = new Point(mouseX - 20, mouseY);
+                Point p2 = new Point(mouseX + 20, mouseY);
+                List<Point> vectorPoints = new ArrayList<>();
+                vectorPoints.add(p1);
+                vectorPoints.add(p2);
+                BezierCurve newCurve = new BezierCurve(gc, vectorPoints, 100, 2, Color.BLACK);
+                cv.addCurve(newCurve);
             }
         });
 
@@ -137,18 +153,24 @@ public class RasterizationController {
 
         });
 
+
+        //КЛАВИАТУРА
         canvas.setOnKeyPressed(keyEvent -> {
             KeyCode code = keyEvent.getCode();
-            if (code == KeyCode.A) {
-                isAdown = true;
+            keys.put(code, true);
+            boolean isCtrlDown = keys.get(KeyCode.CONTROL);
+            boolean isADown = keys.get(KeyCode.A);
+            if (isCtrlDown && isADown) {
+                List<Point> mainPoints = cv.getActiveCurve().getPoints();
+                Point last = mainPoints.getLast();
+                cv.getActiveCurve().addVectorPoint(new Point(last.x + 30, last.y));
             }
         });
 
         canvas.setOnKeyReleased(keyEvent -> {
             KeyCode code = keyEvent.getCode();
-            if (code == KeyCode.A) {
-                isAdown = false;
-            }
+            keys.put(code, false);
+
         });
     }
 

@@ -115,4 +115,9 @@ public class BezierCurve {
         }
         //segmentPoints = generateBezierCurveOptimized(points, segments);
     }
+
+    public void addVectorPoint(Point p) {
+        points.add(p);
+        segmentPoints = generateBezierCurveOptimized(points, segments);
+    }
 }
