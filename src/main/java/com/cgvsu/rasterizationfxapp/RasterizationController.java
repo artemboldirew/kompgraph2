@@ -34,6 +34,12 @@ public class RasterizationController {
     private boolean isCtrldown = false;
     private HashMap<KeyCode, Boolean> keys = new HashMap<>();
 
+    private final int SEGMENTS_AMOUNT = 100;
+    private final int MAKING_POINT_SHIFT = 20;
+    private final int SCREEN_UPDATE_TIME = 10_000_000;
+    private final int CURVE_WIDTH = 2;
+    private final int GRID_SHIFT = 10;
+
     @FXML
     private void initialize() {
         anchorPane.prefWidthProperty().addListener((ov, oldValue, newValue) -> canvas.setWidth(newValue.doubleValue()));
@@ -43,20 +49,19 @@ public class RasterizationController {
         canvas.requestFocus();
         gc = gr;
         cv = new CurveManager();
-        DrawUtil.drawGrid(gr, 10);
+        DrawUtil.drawGrid(gr, GRID_SHIFT);
 
         for (KeyCode k : KeyCode.values()) {
             keys.put(k, false);
         }
 
         setupEventHandlers();
-        firstDraw();
         AnimationTimer timer = new AnimationTimer() {
             private long lastUpdate = 0;
 
             @Override
             public void handle(long now) {
-                if (now - lastUpdate >= 10_000_000) { // 10ms в наносекундах
+                if (now - lastUpdate >= SCREEN_UPDATE_TIME) { // 10ms в наносекундах
                     repaint(); // Ваш метод отрисовки
                     lastUpdate = now;
                 }
@@ -65,15 +70,11 @@ public class RasterizationController {
         timer.start();
     }
 
-    private void firstDraw() {
-//
-    }
+
 
     public void repaint() {
-        // Очищаем canvas
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        // Перерисовываем содержимое
         drawContent();
     }
 
@@ -98,12 +99,12 @@ public class RasterizationController {
             }
             if (cv.getActiveCurve() == null && keys.get(KeyCode.CONTROL)) {
 
-                Point p1 = new Point(mouseX - 20, mouseY);
-                Point p2 = new Point(mouseX + 20, mouseY);
+                Point p1 = new Point(mouseX - MAKING_POINT_SHIFT, mouseY);
+                Point p2 = new Point(mouseX + MAKING_POINT_SHIFT, mouseY);
                 List<Point> vectorPoints = new ArrayList<>();
                 vectorPoints.add(p1);
                 vectorPoints.add(p2);
-                BezierCurve newCurve = new BezierCurve(gc, vectorPoints, 100, 2, Color.BLACK);
+                BezierCurve newCurve = new BezierCurve(gc, vectorPoints, SEGMENTS_AMOUNT, CURVE_WIDTH, Color.BLACK);
                 cv.addCurve(newCurve);
             }
         });
@@ -122,9 +123,12 @@ public class RasterizationController {
             int mouseY = (int) event.getY();
             if (draggingPoint != null) {
                 Point p = draggingPoint;
-                p.x = mouseX;
-                p.y = mouseY;
-                cv.getActiveCurve().regenerateCurve();
+                if (mouseX >= 0 && mouseY >= 0 && mouseX <= canvas.getWidth() && mouseY <= canvas.getHeight()) {
+                    p.x = mouseX;
+                    p.y = mouseY;
+                    cv.getActiveCurve().regenerateCurve();
+                }
+
             }
 
             //boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
@@ -160,7 +164,7 @@ public class RasterizationController {
             keys.put(code, true);
             boolean isCtrlDown = keys.get(KeyCode.CONTROL);
             boolean isADown = keys.get(KeyCode.A);
-            if (isCtrlDown && isADown) {
+            if (isCtrlDown && isADown && cv.getActiveCurve() != null ) {
                 List<Point> mainPoints = cv.getActiveCurve().getPoints();
                 Point last = mainPoints.getLast();
                 cv.getActiveCurve().addVectorPoint(new Point(last.x + 30, last.y));

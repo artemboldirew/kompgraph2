@@ -42,51 +42,36 @@ public class DrawUtil {
         int y0 = p1.y;
         int x1 = p2.x;
         int y1 = p2.y;
-        // Вычисляем абсолютные разности
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
 
-        // Определяем направление движения по X и Y
         int sx = (x0 < x1) ? 1 : -1;
         int sy = (y0 < y1) ? 1 : -1;
 
-        // Начальная ошибка
         int err = dx - dy;
         int currentX = x0;
         int currentY = y0;
 
-        // Основной цикл
         while (true) {
-            // Добавляем текущую точку
             points.add(new Point(currentX, currentY));
-
-            // Если достигли конечной точки - выходим
             if (currentX == x1 && currentY == y1) {
                 break;
             }
 
-            // Вычисляем удвоенную ошибку
             int e2 = 2 * err;
 
-            // Если ошибка по Y велика - двигаемся по Y
             if (e2 > -dy) {
                 err -= dy;
                 currentX += sx;
             }
 
-            // Если ошибка по X велика - двигаемся по X
             if (e2 < dx) {
                 err += dx;
                 currentY += sy;
             }
         }
-        int ddx = x1 - x0;
-        int ddy = y0 - y1;
         for (Point p : points) {
             drawFilledCircleOptimized(gr, p.x, p.y, width, color);
-//            pw.setColor(p.x, p.y, color);
-//            pw.setColor(p.x, p.y - 1, color);
-//            pw.setColor(p.x, p.y - 2, color);
         }
     }
 

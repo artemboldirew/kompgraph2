@@ -14,6 +14,8 @@ public class RasterizationApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(RasterizationApplication.class.getResource("mainwindow.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT);
         stage.setTitle("Rasterization App");
+//        stage.setMaximized(true);
+//        stage.setFullScreen(true);
         stage.setScene(scene);
         stage.show();
     }
