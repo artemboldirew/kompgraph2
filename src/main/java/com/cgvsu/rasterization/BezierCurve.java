@@ -1,5 +1,7 @@
 package com.cgvsu.rasterization;
 
+import com.cgvsu.util.DrawUtil;
+import com.cgvsu.util.MathUtil;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -38,9 +40,7 @@ public class BezierCurve {
         }
     }
 
-    public void setColor(Color color) {
-        this.color = color;
-    }
+
 
     public static List<Point> generateBezierCurveOptimized(List<Point> controlPoints, int segments) {
         if (controlPoints.size() < 2) {
@@ -67,15 +67,7 @@ public class BezierCurve {
     }
 
     private static double binomialCoefficient(int n, int k) {
-        return factorial(n) / (factorial(k) * factorial(n - k));
-    }
-
-    private static double factorial(int n) {
-        double result = 1;
-        for (int i = 2; i <= n; i++) {
-            result *= i;
-        }
-        return result;
+        return MathUtil.factorial(n) / (MathUtil.factorial(k) * MathUtil.factorial(n - k));
     }
 
 
@@ -113,7 +105,6 @@ public class BezierCurve {
             segmentPoints.get(i).x = changedPoints.get(i).x;
             segmentPoints.get(i).y = changedPoints.get(i).y;
         }
-        //segmentPoints = generateBezierCurveOptimized(points, segments);
     }
 
     public void addVectorPoint(Point p) {

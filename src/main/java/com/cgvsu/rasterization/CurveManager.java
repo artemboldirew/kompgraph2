@@ -1,6 +1,7 @@
 package com.cgvsu.rasterization;
 
-import javafx.scene.input.MouseEvent;
+import com.cgvsu.util.CoordinateUtil;
+import com.cgvsu.util.DrawUtil;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -36,13 +37,8 @@ public class CurveManager {
         return mapOfPointsAndCurves.get(p);
     }
 
-//    public BezierCurve getCurveBySetPoints(HashSet<Point> points, Point cursor) {
-//        HashSet<Point> intersection = new HashSet<>(points);
-//        intersection.retainAll(allPoints);
-//
-//    }
 
-    public boolean isCurveInPoints(HashSet<Point> points) {
+    private boolean isCurveInPoints(HashSet<Point> points) { //Находится ли какая то кривая в радиусе курсора
         HashSet<Point> intersection = new HashSet<>(points);
         intersection.retainAll(allPoints);
         return !intersection.isEmpty();
@@ -55,7 +51,7 @@ public class CurveManager {
     }
 
 
-    public BezierCurve getClosestCurveToPoint(int mouseX, int mouseY) {
+    public BezierCurve getClosestCurveToPoint(int mouseX, int mouseY) { //Находит ближайшую кривую, которой принадлежит точка
         List<Point> circle = DrawUtil.getFilledCircleOptimized(mouseX, mouseY, 10);
         HashSet<Point> circleCursor = new HashSet<>(circle);
         circleCursor.retainAll(allPoints);

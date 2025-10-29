@@ -1,4 +1,4 @@
-package com.cgvsu.rasterization;
+package com.cgvsu.util;
 
 import java.awt.*;
 import java.util.Comparator;
@@ -23,7 +23,6 @@ public class CoordinateUtil {
     public static Point getClosestPointFromSet(int mouseX, int mouseY, HashSet<Point> points) {
         List<Point> circle = DrawUtil.getFilledCircleOptimized(mouseX, mouseY, 10);
         HashSet<Point> circleCursor = new HashSet<>(circle);
-        //HashSet<Point> intersection = new HashSet<>(circleCursor);
         points.retainAll(circleCursor);
         return closestPoint(points, new Point(mouseX, mouseY));
     }

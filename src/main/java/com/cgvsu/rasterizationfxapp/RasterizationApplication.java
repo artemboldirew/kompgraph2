@@ -12,9 +12,10 @@ public class RasterizationApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(RasterizationApplication.class.getResource("mainwindow.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT);
+        Scene scene = new Scene(fxmlLoader.load(), Config.getScreenWidth(), Config.getScreenHeight());
+
         stage.setTitle("Rasterization App");
-//        stage.setMaximized(true);
+        stage.setMaximized(true);
 //        stage.setFullScreen(true);
         stage.setScene(scene);
         stage.show();

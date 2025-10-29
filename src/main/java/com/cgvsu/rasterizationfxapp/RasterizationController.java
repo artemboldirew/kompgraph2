@@ -1,7 +1,10 @@
 package com.cgvsu.rasterizationfxapp;
 
+import com.cgvsu.Config;
 import com.cgvsu.interfaces.CanvasElement;
 import com.cgvsu.rasterization.*;
+import com.cgvsu.util.CoordinateUtil;
+import com.cgvsu.util.DrawUtil;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -12,7 +15,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,8 +44,11 @@ public class RasterizationController {
 
     @FXML
     private void initialize() {
+
         anchorPane.prefWidthProperty().addListener((ov, oldValue, newValue) -> canvas.setWidth(newValue.doubleValue()));
         anchorPane.prefHeightProperty().addListener((ov, oldValue, newValue) -> canvas.setHeight(newValue.doubleValue()));
+        canvas.setWidth(Config.getScreenWidth());
+        canvas.setHeight(Config.getScreenHeight());
         GraphicsContext gr = canvas.getGraphicsContext2D();
         canvas.setFocusTraversable(true);
         canvas.requestFocus();
@@ -167,7 +172,7 @@ public class RasterizationController {
             if (isCtrlDown && isADown && cv.getActiveCurve() != null ) {
                 List<Point> mainPoints = cv.getActiveCurve().getPoints();
                 Point last = mainPoints.getLast();
-                cv.getActiveCurve().addVectorPoint(new Point(last.x + 30, last.y));
+                cv.getActiveCurve().addVectorPoint(new Point(Math.min(last.x + 30, Config.getScreenWidth()), last.y));
             }
 
             if (keys.get(KeyCode.DELETE) && cv.getActiveCurve() != null) {

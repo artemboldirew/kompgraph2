@@ -1,4 +1,4 @@
-package com.cgvsu.rasterization;
+package com.cgvsu.util;
 
 import com.cgvsu.Config;
 import javafx.scene.canvas.GraphicsContext;
@@ -14,9 +14,9 @@ public class DrawUtil {
         PixelWriter pixelWriter = graphicsContext.getPixelWriter();
         int vertical = 0;
         int horizontal = 0;
-        while (vertical < Config.SCREEN_HEIGHT) {
-            while (horizontal < Config.SCREEN_WIDTH) {
-                pixelWriter.setColor(horizontal, vertical, Color.rgb(177, 177, 177));
+        while (vertical < Config.getScreenHeight()) {
+            while (horizontal < Config.getScreenWidth()) {
+                pixelWriter.setColor(horizontal, vertical, Color.rgb(177, 177, 177, 0.4));
                 horizontal++;
             }
             vertical += width;
@@ -25,9 +25,9 @@ public class DrawUtil {
 
         vertical = 0;
         horizontal = width;
-        while (horizontal < Config.SCREEN_WIDTH) {
-            while (vertical < Config.SCREEN_HEIGHT) {
-                pixelWriter.setColor(horizontal, vertical, Color.rgb(177, 177, 177));
+        while (horizontal < Config.getScreenWidth()) {
+            while (vertical < Config.getScreenHeight()) {
+                pixelWriter.setColor(horizontal, vertical, Color.rgb(177, 177, 177, 0.4));
                 vertical++;
             }
             horizontal += width;
