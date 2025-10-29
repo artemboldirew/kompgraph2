@@ -74,6 +74,10 @@ public class CurveManager {
 
     }
 
+    public void removeCurve(BezierCurve bz) {
+        curves.remove(bz);
+    }
+
     public BezierCurve getActiveCurve() {
         return this.activeCurve;
     }

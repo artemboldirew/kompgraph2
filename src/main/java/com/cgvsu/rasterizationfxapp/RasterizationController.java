@@ -169,6 +169,12 @@ public class RasterizationController {
                 Point last = mainPoints.getLast();
                 cv.getActiveCurve().addVectorPoint(new Point(last.x + 30, last.y));
             }
+
+            if (keys.get(KeyCode.DELETE) && cv.getActiveCurve() != null) {
+                BezierCurve bc = cv.getActiveCurve();
+                cv.removeCurve(bc);
+                cv.setActiveCurve(null);
+            }
         });
 
         canvas.setOnKeyReleased(keyEvent -> {
