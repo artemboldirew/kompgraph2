@@ -11,6 +11,7 @@ import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
@@ -33,7 +34,6 @@ public class RasterizationController {
     private HashSet<Point> allPoints;
     private HashMap<Point, CanvasElement> canvasMap;
     private Point draggingPoint;
-    private boolean isCtrldown = false;
     private HashMap<KeyCode, Boolean> keys = new HashMap<>();
 
     private final int SEGMENTS_AMOUNT = 100;
@@ -44,7 +44,6 @@ public class RasterizationController {
 
     @FXML
     private void initialize() {
-
         anchorPane.prefWidthProperty().addListener((ov, oldValue, newValue) -> canvas.setWidth(newValue.doubleValue()));
         anchorPane.prefHeightProperty().addListener((ov, oldValue, newValue) -> canvas.setHeight(newValue.doubleValue()));
         canvas.setWidth(Config.getScreenWidth());
@@ -75,11 +74,8 @@ public class RasterizationController {
         timer.start();
     }
 
-
-
     public void repaint() {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-
         drawContent();
     }
 
@@ -90,55 +86,16 @@ public class RasterizationController {
 
     private void setupEventHandlers() {
         canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            int mouseX = (int) event.getX();
-            int mouseY = (int) event.getY();
-            boolean close = cv.isCurveCloseToPoint(mouseX, mouseY);
-            if (close) {
-                BezierCurve bz = cv.getClosestCurveToPoint(mouseX, mouseY);
-                cv.setActiveCurve(bz);
-            } else {
-                boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
-                if (cv.getActiveCurve() != null && !IsMainPointsClose) {
-                    cv.setActiveCurve(null);
-                }
-            }
-            if (cv.getActiveCurve() == null && keys.get(KeyCode.CONTROL)) {
-
-                Point p1 = new Point(mouseX - MAKING_POINT_SHIFT, mouseY);
-                Point p2 = new Point(mouseX + MAKING_POINT_SHIFT, mouseY);
-                List<Point> vectorPoints = new ArrayList<>();
-                vectorPoints.add(p1);
-                vectorPoints.add(p2);
-                BezierCurve newCurve = new BezierCurve(gc, vectorPoints, SEGMENTS_AMOUNT, CURVE_WIDTH, Color.BLACK);
-                cv.addCurve(newCurve);
-            }
+            activateDisactivateCurve(event);
+            makeCurve(event);
         });
 
         canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
-            int mouseX = (int) event.getX();
-            int mouseY = (int) event.getY();
-            boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
-            if (cv.getActiveCurve() != null && IsMainPointsClose) {
-                draggingPoint = CoordinateUtil.getClosestPointFromSet(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints()));
-            }
+            startDragging(event);
         });
 
         canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, event -> {
-            int mouseX = (int) event.getX();
-            int mouseY = (int) event.getY();
-            if (draggingPoint != null) {
-                Point p = draggingPoint;
-                if (mouseX >= 0 && mouseY >= 0 && mouseX <= canvas.getWidth() && mouseY <= canvas.getHeight()) {
-                    p.x = mouseX;
-                    p.y = mouseY;
-                    cv.getActiveCurve().regenerateCurve();
-                }
-
-            }
-
-            //boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
-
-
+            activeDragging(event);
         });
 
         canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, event -> {
@@ -146,51 +103,110 @@ public class RasterizationController {
         });
 
         canvas.setOnMouseMoved(event -> {
-            int mouseX = (int) event.getX();
-            int mouseY = (int) event.getY();
-            boolean close = cv.isCurveCloseToPoint(mouseX, mouseY);
-
-            boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
-            if (close || IsMainPointsClose) {
-                canvas.setCursor(Cursor.HAND);
-            }
-            else {
-                canvas.setCursor(Cursor.DEFAULT);
-            }
-
-
-
+            cursorMoving(event);
         });
-
 
         //КЛАВИАТУРА
         canvas.setOnKeyPressed(keyEvent -> {
             KeyCode code = keyEvent.getCode();
             keys.put(code, true);
-            boolean isCtrlDown = keys.get(KeyCode.CONTROL);
-            boolean isADown = keys.get(KeyCode.A);
-            if (isCtrlDown && isADown && cv.getActiveCurve() != null ) {
-                List<Point> mainPoints = cv.getActiveCurve().getPoints();
-                Point last = mainPoints.getLast();
-                cv.getActiveCurve().addVectorPoint(new Point(Math.min(last.x + 30, Config.getScreenWidth()), last.y));
-            }
-
-            if (keys.get(KeyCode.DELETE) && cv.getActiveCurve() != null) {
-                BezierCurve bc = cv.getActiveCurve();
-                cv.removeCurve(bc);
-                cv.setActiveCurve(null);
-            }
+            appendNewPointToCurve(keyEvent);
+            deleteActiveCurve(keyEvent);
         });
 
         canvas.setOnKeyReleased(keyEvent -> {
             KeyCode code = keyEvent.getCode();
             keys.put(code, false);
-
         });
     }
 
-    private void getCurrentElement(MouseEvent event) {
 
+
+    //Методы считывания ввода
+    private void activateDisactivateCurve(MouseEvent event) {
+        int mouseX = (int) event.getX();
+        int mouseY = (int) event.getY();
+        boolean close = cv.isCurveCloseToPoint(mouseX, mouseY);
+        if (close) {
+            BezierCurve bz = cv.getClosestCurveToPoint(mouseX, mouseY);
+            cv.setActiveCurve(bz);
+        } else {
+            boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
+            if (cv.getActiveCurve() != null && !IsMainPointsClose) {
+                cv.setActiveCurve(null);
+            }
+        }
+    }
+
+    private void makeCurve(MouseEvent event) {
+        int mouseX = (int) event.getX();
+        int mouseY = (int) event.getY();
+        if (cv.getActiveCurve() == null && keys.get(KeyCode.CONTROL)) {
+
+            Point p1 = new Point(mouseX - MAKING_POINT_SHIFT, mouseY);
+            Point p2 = new Point(mouseX + MAKING_POINT_SHIFT, mouseY);
+            List<Point> vectorPoints = new ArrayList<>();
+            vectorPoints.add(p1);
+            vectorPoints.add(p2);
+            BezierCurve newCurve = new BezierCurve(gc, vectorPoints, SEGMENTS_AMOUNT, CURVE_WIDTH, Color.BLACK);
+            cv.addCurve(newCurve);
+        }
+    }
+
+    private void startDragging(MouseEvent event) {
+        int mouseX = (int) event.getX();
+        int mouseY = (int) event.getY();
+        boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
+        if (cv.getActiveCurve() != null && IsMainPointsClose) {
+            draggingPoint = CoordinateUtil.getClosestPointFromSet(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints()));
+        }
+    }
+
+    private void activeDragging(MouseEvent event) {
+        int mouseX = (int) event.getX();
+        int mouseY = (int) event.getY();
+        if (draggingPoint != null) {
+            Point p = draggingPoint;
+            if (mouseX >= 0 && mouseY >= 0 && mouseX <= canvas.getWidth() && mouseY <= canvas.getHeight()) {
+                p.x = mouseX;
+                p.y = mouseY;
+                cv.getActiveCurve().regenerateCurve();
+            }
+
+        }
+    }
+
+    private void cursorMoving(MouseEvent event) {
+        int mouseX = (int) event.getX();
+        int mouseY = (int) event.getY();
+        boolean close = cv.isCurveCloseToPoint(mouseX, mouseY);
+
+        boolean IsMainPointsClose = cv.getActiveCurve() != null ? CoordinateUtil.isSetCloseToPoint(mouseX, mouseY, new HashSet<>(cv.getActiveCurve().getPoints())) : false;
+        if (close || IsMainPointsClose) {
+            canvas.setCursor(Cursor.HAND);
+        }
+        else {
+            canvas.setCursor(Cursor.DEFAULT);
+        }
+    }
+
+
+    private void appendNewPointToCurve(KeyEvent keyEvent) {
+        boolean isCtrlDown = keys.get(KeyCode.CONTROL);
+        boolean isADown = keys.get(KeyCode.A);
+        if (isCtrlDown && isADown && cv.getActiveCurve() != null ) {
+            List<Point> mainPoints = cv.getActiveCurve().getPoints();
+            Point last = mainPoints.getLast();
+            cv.getActiveCurve().addVectorPoint(new Point(Math.min(last.x + 30, Config.getScreenWidth()), last.y));
+        }
+    }
+
+    private void deleteActiveCurve(KeyEvent keyEvent) {
+        if (keys.get(KeyCode.DELETE) && cv.getActiveCurve() != null) {
+            BezierCurve bc = cv.getActiveCurve();
+            cv.removeCurve(bc);
+            cv.setActiveCurve(null);
+        }
     }
 
 
