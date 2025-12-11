@@ -1,7 +1,6 @@
 package com.cgvsu.rasterizationfxapp;
 
 import com.cgvsu.Config;
-import com.cgvsu.interfaces.CanvasElement;
 import com.cgvsu.rasterization.*;
 import com.cgvsu.util.CoordinateUtil;
 import com.cgvsu.util.DrawUtil;
@@ -32,14 +31,13 @@ public class RasterizationController {
     private GraphicsContext gc;
     private CurveManager cv;
     private HashSet<Point> allPoints;
-    private HashMap<Point, CanvasElement> canvasMap;
     private Point draggingPoint;
     private HashMap<KeyCode, Boolean> keys = new HashMap<>();
 
-    private final int SEGMENTS_AMOUNT = 100;
+    private final int SEGMENTS_AMOUNT = 10;
     private final int MAKING_POINT_SHIFT = 20;
     private final int SCREEN_UPDATE_TIME = 10_000_000;
-    private final int CURVE_WIDTH = 2;
+    private final int CURVE_WIDTH = 1;
     private final int GRID_SHIFT = 10;
 
     @FXML
@@ -49,6 +47,8 @@ public class RasterizationController {
         canvas.setWidth(Config.getScreenWidth());
         canvas.setHeight(Config.getScreenHeight());
         GraphicsContext gr = canvas.getGraphicsContext2D();
+        gr.setImageSmoothing(false);
+
         canvas.setFocusTraversable(true);
         canvas.requestFocus();
         gc = gr;
@@ -80,7 +80,7 @@ public class RasterizationController {
     }
 
     private void drawContent() {
-        DrawUtil.drawGrid(gc, 10);
+        DrawUtil.drawGrid(gc, GRID_SHIFT);
         cv.draw();
     }
 
@@ -148,7 +148,7 @@ public class RasterizationController {
             List<Point> vectorPoints = new ArrayList<>();
             vectorPoints.add(p1);
             vectorPoints.add(p2);
-            BezierCurve newCurve = new BezierCurve(gc, vectorPoints, SEGMENTS_AMOUNT, CURVE_WIDTH, Color.BLACK);
+            BezierCurve newCurve = new BezierCurve(gc, vectorPoints, CURVE_WIDTH, Color.BLACK);
             cv.addCurve(newCurve);
         }
     }

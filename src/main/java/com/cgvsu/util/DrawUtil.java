@@ -35,7 +35,7 @@ public class DrawUtil {
         }
     }
 
-    public static void drawLine(GraphicsContext gr, Point p1, Point p2, Color color, int width) {
+    public static void drawLine2(GraphicsContext gr, Point p1, Point p2, Color color, int width) {
         PixelWriter pw = gr.getPixelWriter();
         List<Point> points = new ArrayList<>();
         int x0 = p1.x;
@@ -87,6 +87,10 @@ public class DrawUtil {
     public static void drawFilledCircleOptimized(GraphicsContext gr, int centerX, int centerY, int radius, Color color) {
         int radiusSq = radius * radius;
         PixelWriter pw = gr.getPixelWriter();
+        if (radius <= 1) {
+            pw.setColor(centerX, centerY, color);
+            return;
+        }
         for (int y = -radius; y <= radius; y++) {
             int xLimit = (int) Math.sqrt(radiusSq - y * y);
             for (int x = -xLimit; x <= xLimit; x++) {
@@ -108,5 +112,61 @@ public class DrawUtil {
     }
 
 
+    public static void drawListOfPoints(GraphicsContext gr, List<Point> points) {
+        PixelWriter pw = gr.getPixelWriter();
+        for (Point p : points) {
+            pw.setColor(p.x, p.y, Color.BLACK);
+        }
+    }
+
+
+
+    public static void drawLine(GraphicsContext gr, Point p1, Point p2, Color color, int width) {
+        // Основная линия
+        gr.setImageSmoothing(false);
+        PixelWriter pw = gr.getPixelWriter();
+        drawBresenhamLine(pw, p1.x, p1.y, p2.x, p2.y, color);
+
+        // Если толщина больше 1, добавляем дополнительные линии
+        if (width > 1) {
+            //drawThickLine(pw, p1.x, p1.y, p2.x, p2.y, width, color);
+            drawLine2(gr, p1, p2, color, width);
+        }
+    }
+
+
+    private static void drawBresenhamLine(PixelWriter pw, int x1, int y1,
+                                          int x2, int y2, Color color) {
+        int dx = Math.abs(x2 - x1);
+        int dy = Math.abs(y2 - y1);
+
+        int sx = (x1 < x2) ? 1 : -1;
+        int sy = (y1 < y2) ? 1 : -1;
+
+        int err = dx - dy;
+        int e2;
+
+        int currentX = x1;
+        int currentY = y1;
+
+        while (true) {
+            pw.setColor(currentX, currentY, color);
+            if (currentX == x2 && currentY == y2) {
+                break;
+            }
+
+            e2 = 2 * err;
+
+            if (e2 > -dy) {
+                err -= dy;
+                currentX += sx;
+            }
+
+            if (e2 < dx) {
+                err += dx;
+                currentY += sy;
+            }
+        }
+    }
 
 }
